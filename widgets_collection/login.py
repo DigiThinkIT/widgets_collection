@@ -6,6 +6,7 @@ import json
 from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
+from frappe.utils.password import update_password
 
 def apply_context(context):
 
@@ -57,3 +58,45 @@ def login_via_token(login_token):
 	frappe.local.login_manager = LoginManager()
 
 	redirect_post_login(desk_user = frappe.db.get_value("User", frappe.session.user, "user_type")=="System User")
+
+@frappe.whitelist(allow_guest=True)
+def sign_up(email, first_name, last_name, pwd=None, redirect_to=None):
+	user = frappe.db.get("User", {"email": email})
+	if user:
+		if user.disabled:
+			return _("Registered but disabled.")
+		else:
+			return _("Already Registered")
+	else:
+		if frappe.db.sql("""select count(*) from tabUser where
+			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
+
+			frappe.respond_as_web_page(_('Temperorily Disabled'),
+				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
+				http_status_code=429)
+
+		user = frappe.get_doc({
+			"doctype":"User",
+			"email": email,
+			"first_name": first_name,
+			"last_name": last_name,
+			"enabled": 1,
+			"user_type": "Website User",
+			"send_welcome_email": True
+		})
+
+		if pwd:
+			user.send_welcome_email = False
+
+		user.flags.ignore_permissions = True
+		user.insert()
+
+		if pwd:
+			update_password(user.name, pwd)
+			frappe.local.login_manager.login_as(email)
+			frappe.set_user(email)
+
+		if redirect_to:
+			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
+
+		user.add_roles("Customer")
