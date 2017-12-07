@@ -131,7 +131,11 @@ login.login_handlers = (function() {
 	var login_handlers = {
 		200: function(data) {
 			if(data.message=="Logged In") {
-				window.location.href = get_url_arg("redirect-to") || data.home_page;
+				if ( !frappe.on_login_redirect_handler ) {
+					window.location.href = get_url_arg("redirect-to") || data.home_page;
+				} else {
+					frappe.on_login_redirect_handler(get_url_arg("redirect-to") || data.home_page);
+				}
 			} else if(data.message=="No App") {
 				if(localStorage) {
 					var last_visited =
