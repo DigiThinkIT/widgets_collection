@@ -64,7 +64,6 @@ def login_via_token(login_token):
 
 	redirect_post_login(desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User")
 
-
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, first_name, last_name, pwd=None, redirect_to=None):
 	user = frappe.db.get("User", {"email": email})
@@ -104,3 +103,4 @@ def sign_up(email, first_name, last_name, pwd=None, redirect_to=None):
 
 		if redirect_to:
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
+		user.add_roles("Customer")
