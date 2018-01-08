@@ -40,8 +40,13 @@ login.bind_events = function() {
 			frappe.msgprint(__("Valid email and name required"));
 			return false;
 		}
-		login.call(args);
-		return false;
+
+		if(args.pwd != args.pwd_check) {
+			frappe.msgprint(__("The passwords you entered did not match"))
+		} else {
+			login.call(args);
+			return false;
+		}
 	});
 
 	$(".form-forgot").on("submit", function(event) {
