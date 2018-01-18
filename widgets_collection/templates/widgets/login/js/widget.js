@@ -149,15 +149,24 @@ login.login_handlers = (function() {
 					localStorage.removeItem("last_visited");
 				}
 
+				var redirect_to = data.home_page;
+				var ignore_last_visited = false;
+
 				if(data.redirect_to) {
-					window.location.href = data.redirect_to;
+					redirect_to = data.redirect_to;
+					ignore_last_visited = true;
 				}
 
-				if(last_visited && last_visited != "/login") {
-					window.location.href = last_visited;
-				} else {
-					window.location.href = data.home_page;
+				if(!ignore_last_visited && last_visited && last_visited != "/login") {
+					redirect_to = last_visited;
 				}
+
+				if ( !frappe.on_login_redirect_handler ) {
+					window.location.href = redirect_to;
+				} else {
+					frappe.on_login_redirect_handler(redirect_to);
+				}
+
 			} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
 				frappe.msgprint(data.message);
 			}

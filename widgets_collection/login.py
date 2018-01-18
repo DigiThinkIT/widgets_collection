@@ -1,17 +1,22 @@
 from __future__ import unicode_literals
-import frappe
-import frappe.utils
-from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_via_oauth2, login_oauth_user as _login_oauth_user, redirect_post_login
+
 import json
+
+import frappe
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
+from frappe.integrations.doctype.ldap_settings.ldap_settings import \
+    get_ldap_settings
+from frappe.utils import cint
+from frappe.utils.oauth import login_oauth_user as _login_oauth_user
+from frappe.utils.oauth import (get_oauth2_authorize_url, get_oauth_keys,
+                                login_via_oauth2, redirect_post_login)
 from frappe.utils.password import update_password
 
-def apply_context(context):
 
+def apply_context(context):
 	# get settings from site config
-	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
+	context["disable_signup"] = cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
 
 	for provider in ("google", "github", "facebook", "frappe"):
 		if get_oauth_keys(provider):
@@ -57,7 +62,7 @@ def login_via_token(login_token):
 	frappe.local.form_dict.sid = sid
 	frappe.local.login_manager = LoginManager()
 
-	redirect_post_login(desk_user = frappe.db.get_value("User", frappe.session.user, "user_type")=="System User")
+	redirect_post_login(desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User")
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, first_name, last_name, pwd=None, redirect_to=None):
@@ -72,11 +77,11 @@ def sign_up(email, first_name, last_name, pwd=None, redirect_to=None):
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
 
 			frappe.respond_as_web_page(_('Temperorily Disabled'),
-				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
-				http_status_code=429)
+                              _('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
+                            http_status_code=429)
 
 		user = frappe.get_doc({
-			"doctype":"User",
+			"doctype": "User",
 			"email": email,
 			"first_name": first_name,
 			"last_name": last_name,
@@ -98,5 +103,4 @@ def sign_up(email, first_name, last_name, pwd=None, redirect_to=None):
 
 		if redirect_to:
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
-
 		user.add_roles("Customer")
