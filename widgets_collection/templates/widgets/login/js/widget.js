@@ -64,7 +64,7 @@ login.bind_events = function() {
 
 	$(".btn-ldpa-login").on("click", function(){
 		var args = {};
-		args.cmd = "{{ ldap_settings.method }}";
+		args.cmd = "{{ "" if not ldap_settings else ldap_settings.method }}";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		args.device = "desktop";
