@@ -5,12 +5,11 @@ import json
 import frappe
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import \
-    get_ldap_settings
+from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.utils import cint
+from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys
 from frappe.utils.oauth import login_oauth_user as _login_oauth_user
-from frappe.utils.oauth import (get_oauth2_authorize_url, get_oauth_keys,
-                                login_via_oauth2, redirect_post_login)
+from frappe.utils.oauth import login_via_oauth2, redirect_post_login
 from frappe.utils.password import update_password
 
 
@@ -23,7 +22,7 @@ def apply_context(context):
 			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
 			context["social_login"] = True
 
-	ldap_settings = get_ldap_settings()
+	ldap_settings = LDAPSettings.get_ldap_client_settings()
 	context["ldap_settings"] = ldap_settings
 
 	return context
