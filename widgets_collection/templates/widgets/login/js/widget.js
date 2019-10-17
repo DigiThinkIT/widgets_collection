@@ -30,7 +30,7 @@ login.bind_events = function() {
 		var args = {};
 		args.cmd = "widgets_collection.login.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
-		args.redirect_to = get_url_arg("redirect-to") || '';
+		args.redirect_to = frappe.utils.get_url_arg("redirect-to") || '';
 		args.first_name = ($("#signup_firstname").val() || "").trim();
 		args.last_name = ($("#signup_lastname").val() || "").trim();
 		args.pwd = ($("#signup_password").val() || "").trim();
@@ -137,15 +137,15 @@ login.login_handlers = (function() {
 		200: function(data) {
 			if(data.message=="Logged In") {
 				if ( !frappe.on_login_redirect_handler ) {
-					window.location.href = get_url_arg("redirect-to") || data.home_page;
+					window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;
 				} else {
-					frappe.on_login_redirect_handler(get_url_arg("redirect-to") || data.home_page);
+					frappe.on_login_redirect_handler(frappe.utils.get_url_arg("redirect-to") || data.home_page);
 				}
 			} else if(data.message=="No App") {
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")
-						|| get_url_arg("redirect-to");
+						|| frappe.utils.get_url_arg("redirect-to");
 					localStorage.removeItem("last_visited");
 				}
 
